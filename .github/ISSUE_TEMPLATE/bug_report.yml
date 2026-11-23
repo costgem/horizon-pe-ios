@@ -1,0 +1,40 @@
+name: Bug report
+description: Something in Horizon Pocket Edition (iOS) does not work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. A report with the diagnostic ZIP and the device is the one that gets fixed.
+        Bugs that also happen in Starling on Android or in Horizon on a computer belong to them (links below).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you saw instead. Screenshots and screen recordings help a lot.
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: iPhone or iPad
+      placeholder: iPhone 15 Pro
+    validations:
+      required: true
+  - type: input
+    id: ios
+    attributes:
+      label: iOS version
+      placeholder: iOS 18.1
+  - type: input
+    id: build
+    attributes:
+      label: Build
+      description: The artifact you installed (horizon-pe-ios-<number>), and the native mods built into it, if any.
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: |
+        Options > Diagnostics > Export, then attach the ZIP here. If the game closed by itself, also attach
+        On My iPhone > Horizon PE > logs > previous-stderr.log from the Files app.
