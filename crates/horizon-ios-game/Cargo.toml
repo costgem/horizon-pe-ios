@@ -1,0 +1,50 @@
+[package]
+name = "horizon-ios-game"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version = "1.90"
+description = "Starling on iOS: the app's program, whose event loop runs the launcher and the game"
+publish = false
+
+[[bin]]
+name = "horizon-ios-game"
+path = "src/main.rs"
+
+# Everything is iOS-only: on other targets the program only says what it is for.
+[target.'cfg(target_os = "ios")'.dependencies]
+# The game (Starling's), its iOS hooks (horizon-client/src/ios.rs) and its start (entry.rs).
+# `horizon-extras`, as Starling's Android build: Options' Horizon Settings and Mods.
+horizon-client = { path = "../horizon-client", default-features = false, features = ["horizon-extras"] }
+# What the desktop's mod host installs before the engine starts, as Starling's Android library does
+# (android_lib.rs `install_platform`): the engine's seal, the mods' instrumentation and platform
+# socket, the render points.
+horizon-engine-slots = { path = "../horizon-engine-slots" }
+mod_platform = { package = "horizon-mod-api", path = "../horizon-mod-api" }
+mod_points = { package = "horizon-mod-points", path = "../horizon-mod-points" }
+mod_render = { package = "horizon-mod-render", path = "../horizon-mod-render" }
+# The engine's start (`load_code`, `code_runtime`): iOS loads no libraries, so none are passed.
+horizon-mod-host = { path = "../horizon-mod-host", default-features = false }
+# UIKit, GameController and the Keychain: the calls the launcher makes.
+horizon-gamecontroller = { path = "../horizon-gamecontroller" }
+# SRV records through iOS's resolver (dns.rs).
+horizon-protocol = { path = "../horizon-protocol" }
+# Free memory given back when iOS warns (`memory_warning`).
+horizon-threads = { path = "../horizon-threads" }
+# The game's identity the program carries, as the desktop's does (horizon-game's main.rs).
+horizon-mod-package = { path = "../horizon-mod-package", default-features = false, features = ["index"] }
+winit = "0.30.13"
+serde_json = "1"
+# The 16 MB stack every event-loop callback runs on: iOS gives its main thread 1 MB.
+stacker = "0.1"
+# Standard error into the game folder's logs (`capture_stderr`).
+libc = "0.2"
+log = "0.4"
+
+[features]
+default = ["audio"]
+# Sound: cpal over CoreAudio.
+audio = ["horizon-client/audio"]
+
+[lints]
+workspace = true
