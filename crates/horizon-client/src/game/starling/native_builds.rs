@@ -1050,7 +1050,7 @@ fn build_in_store(
         }
         {
             let mut s = shared.lock().unwrap_or_else(PoisonError::into_inner);
-            s.status = format!("Sending {} to GitHub...", mods_label(&[w.id.clone()]));
+            s.status = format!("Sending {} to GitHub...", mods_label(std::slice::from_ref(&w.id)));
             s.building_since = None;
         }
         *asked += 1;
@@ -1099,7 +1099,7 @@ fn build_in_store(
                     if looks == 0 && !settled {
                         stale.insert(job.clone(), at);
                     } else if settled || stale.get(&job) != Some(&at) {
-                        return Err(format!("{}: {error}", mods_label(&[w.id.clone()])));
+                        return Err(format!("{}: {error}", mods_label(std::slice::from_ref(&w.id))));
                     }
                 }
                 Ok(None) => quiet = 0,

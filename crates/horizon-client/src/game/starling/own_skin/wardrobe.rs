@@ -71,11 +71,9 @@ impl Game<'_> {
             };
             mob
         };
-        if in_world {
-            if let Some((skin, slim)) = self.own_skin_sprite() {
-                mob.skin = Some(skin);
-                mob.slim = slim;
-            }
+        if in_world && let Some((skin, slim)) = self.own_skin_sprite() {
+            mob.skin = Some(skin);
+            mob.slim = slim;
         }
         self.dress_wardrobe_preview(&mut mob);
         if mob.extra.hidden_model_parts & 1 == 0 {
