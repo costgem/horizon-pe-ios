@@ -236,7 +236,25 @@ impl Screen {
                     centered(atlas, batch, line, 60.0 + i as f32 * 10.0, u32::MAX);
                 }
             }
-            Page::Add => centered(atlas, batch, &tr("choose_type"), 50.0, u32::MAX),
+            Page::Add => {
+                centered(atlas, batch, &tr("choose_type"), 50.0, u32::MAX);
+                // Offline is greyed out without a Microsoft account (iOS): why, under it.
+                if !accounts::offline_allowed() {
+                    let why = crate::lang::get(starling_account::OFFLINE_NEEDS_ACCOUNT);
+                    for (i, line) in wrapped(atlas, &why, (w - 50.0).min(320.0))
+                        .iter()
+                        .enumerate()
+                    {
+                        centered(
+                            atlas,
+                            batch,
+                            line,
+                            154.0 + i as f32 * 10.0,
+                            rgba(170, 170, 170, 255),
+                        );
+                    }
+                }
+            }
             Page::List => {
                 let list = accounts::profiles();
                 let message = if list.players().is_empty() {
@@ -279,7 +297,14 @@ impl Screen {
             Page::Add => vec![
                 b(50.0, 80.0, 200.0, "Microsoft".into(), true, 60),
                 b(50.0, 104.0, 200.0, "Ely.by".into(), true, 76),
-                b(50.0, 128.0, 200.0, tr("offline"), true, 77),
+                b(
+                    50.0,
+                    128.0,
+                    200.0,
+                    tr("offline"),
+                    accounts::offline_allowed(),
+                    77,
+                ),
                 b(50.0, h - 28.0, 200.0, tr("back"), true, 70),
             ],
             Page::Offline | Page::Ely => {

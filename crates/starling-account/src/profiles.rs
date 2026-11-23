@@ -23,6 +23,9 @@ pub fn activate_profile(
         .ok_or("starling.account.error.missing")?;
     match player {
         Player::Offline(name) => {
+            if !offline_allowed(&list) {
+                return Err(OFFLINE_NEEDS_ACCOUNT.into());
+            }
             list.selected = None;
             list.offline_selected = Some(name);
         }
@@ -78,12 +81,33 @@ impl Accounts {
         self.selected().cloned().map(Player::Account).or_else(|| {
             self.offline_selected
                 .as_ref()
-                .filter(|n| self.offline.contains(n))
+                .filter(|n| self.offline.contains(n) && offline_allowed(self))
                 .cloned()
                 .map(Player::Offline)
         })
     }
 }
+/// Horizon Pocket Edition (iOS): an offline name is another name for a player who owns the game,
+/// so one is added, chosen and played only beside a Microsoft account (the licensed one; Ely.by's
+/// is not). Starling's Android build keeps offline names open to everyone.
+pub const OFFLINE_NEEDS_MICROSOFT: bool = cfg!(target_os = "ios");
+
+/// Whether `list` may add, choose or play an offline name ([`OFFLINE_NEEDS_MICROSOFT`]).
+pub fn offline_allowed(list: &Accounts) -> bool {
+    offline_allowed_when(list, OFFLINE_NEEDS_MICROSOFT)
+}
+
+fn offline_allowed_when(list: &Accounts, needs_microsoft: bool) -> bool {
+    !needs_microsoft
+        || list
+            .accounts
+            .iter()
+            .any(|account| account.provider == Provider::Microsoft)
+}
+
+/// The refusal [`add_offline`] and the profile choice give without that account.
+pub const OFFLINE_NEEDS_ACCOUNT: &str = "starling.account.error.offline_needs_microsoft";
+
 pub fn valid_offline_name(name: &str) -> bool {
     (1..=16).contains(&name.len()) && name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_')
 }
@@ -100,6 +124,9 @@ pub fn add_offline_if(dir: &Path, name: &str, cancelled: &dyn Fn() -> bool) -> R
         return Err("starling.account.error.cancelled".into());
     }
     let mut list = Accounts::load(dir);
+    if !offline_allowed(&list) {
+        return Err(OFFLINE_NEEDS_ACCOUNT.into());
+    }
     if !list.offline.iter().any(|n| n == name) {
         list.offline.push(name.into());
     }
@@ -131,6 +158,9 @@ pub fn select_profile_if(
             list.offline_selected = None;
         }
         Player::Offline(n) => {
+            if !offline_allowed(&list) {
+                return Err(OFFLINE_NEEDS_ACCOUNT.into());
+            }
             list.selected = None;
             list.offline_selected = Some(n);
         }
@@ -326,5 +356,66 @@ mod tests {
             Accounts::load(&dir.0).player().unwrap().name(),
             "LocalPlayer"
         );
+    }
+}
+
+#[cfg(test)]
+mod offline_rule_tests {
+    use super::*;
+
+    fn account(provider: Provider, name: &str) -> Account {
+        Account {
+            provider,
+            uuid: format!("{name}-uuid"),
+            name: name.into(),
+            skin: None,
+            cape: None,
+        }
+    }
+
+    #[test]
+    fn an_offline_name_needs_a_microsoft_account_where_the_rule_holds() {
+        let mut list = Accounts::default();
+        assert!(!offline_allowed_when(&list, true));
+        assert!(offline_allowed_when(&list, false));
+        // Ely.by's account is not the licensed one.
+        list.accounts.push(account(Provider::Ely, "ely"));
+        assert!(!offline_allowed_when(&list, true));
+        list.accounts.push(account(Provider::Microsoft, "owner"));
+        assert!(offline_allowed_when(&list, true));
+    }
+
+    #[test]
+    fn adding_and_choosing_an_offline_name_follow_the_rule() {
+        let dir =
+            std::env::temp_dir().join(format!("starling-offline-rule-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let added = add_offline(&dir, "Alt_Name");
+        if OFFLINE_NEEDS_MICROSOFT {
+            assert_eq!(added, Err(OFFLINE_NEEDS_ACCOUNT.into()));
+            assert!(Accounts::load(&dir).offline.is_empty());
+            // With a Microsoft account beside it, the name is added and plays.
+            let mut list = Accounts::load(&dir);
+            list.accounts.push(account(Provider::Microsoft, "owner"));
+            list.save(&dir).unwrap();
+            add_offline(&dir, "Alt_Name").unwrap();
+        } else {
+            added.unwrap();
+        }
+        let list = Accounts::load(&dir);
+        assert_eq!(list.player(), Some(Player::Offline("Alt_Name".into())));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_kept_offline_name_does_not_play_without_its_account() {
+        let list = Accounts {
+            offline: vec!["Alt_Name".into()],
+            offline_selected: Some("Alt_Name".into()),
+            ..Default::default()
+        };
+        let expected = (!OFFLINE_NEEDS_MICROSOFT).then(|| Player::Offline("Alt_Name".into()));
+        assert_eq!(list.player(), expected);
     }
 }

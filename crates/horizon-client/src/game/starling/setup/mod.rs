@@ -545,12 +545,17 @@ fn buttons(step: &Step) -> Vec<(String, Action)> {
             literal("Game", Action::FinishOnboarding(true)),
             literal("Launcher", Action::FinishOnboarding(false)),
         ],
-        Step::Start => vec![
+        // An offline name is another name for a player with the game (accounts.rs
+        // `offline_allowed`): without a Microsoft account (iOS), no Play offline.
+        Step::Start => [
             (tr("setup.microsoft"), Action::SignIn),
             (tr("setup.ely_title"), Action::Ely),
             (tr("setup.offline_title"), Action::Offline),
             (tr("setup.import"), Action::Pick),
-        ],
+        ]
+        .into_iter()
+        .filter(|(_, action)| *action != Action::Offline || accounts::offline_allowed())
+        .collect(),
         Step::Offline => vec![
             (tr("setup.offline_title"), Action::PlayOffline),
             (tr("back"), Action::NotOffline),
@@ -565,11 +570,14 @@ fn buttons(step: &Step) -> Vec<(String, Action)> {
             literal("Try again", Action::Retry),
             (tr("setup.import"), Action::Pick),
         ],
-        Step::SignInFailed(_) => vec![
+        Step::SignInFailed(_) => [
             literal("Try again", Action::Retry),
             (tr("back"), Action::AccountBack),
             (tr("setup.offline_title"), Action::Offline),
-        ],
+        ]
+        .into_iter()
+        .filter(|(_, action)| *action != Action::Offline || accounts::offline_allowed())
+        .collect(),
         step if waiting(step) => vec![
             literal("Go fishing", Action::Fish),
             literal("Settings", Action::Settings),

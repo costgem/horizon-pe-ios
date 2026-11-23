@@ -301,6 +301,7 @@
   "starling.account.files": "Файлы игры",
   "starling.account.stop_files": "Остановить загрузку",
   "starling.account.error.name_error": "Используйте 1–16 латинских букв, цифр или подчёркиваний.",
+  "starling.account.error.offline_needs_microsoft": "Для офлайн-ника нужен аккаунт Microsoft с игрой: сначала войдите в него.",
   "starling.account.error.cancelled": "Выбран другой профиль.",
   "starling.account.error.missing": "Профиль не найден.",
   "starling.account.error.signin_again": "Войдите в этот профиль заново.",

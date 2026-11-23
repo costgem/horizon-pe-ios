@@ -112,7 +112,7 @@ impl Game<'_> {
             return;
         }
         self.save_when_focus_leaves(&event);
-        #[cfg(target_os = "android")]
+        #[cfg(any(target_os = "android", target_os = "ios"))]
         self.sync_interface_cursor(self.touch_size());
         if self.touch_event(event_loop, id, &event) {
             return;
@@ -508,7 +508,7 @@ impl ApplicationHandler for Game<'_> {
     /// already, since the system may end the process at any time from here on. Android's UI
     /// thread waits for this to return, so nothing here waits for the world's writes.
     fn suspended(&mut self, _event_loop: &ActiveEventLoop) {
-        #[cfg(target_os = "android")]
+        #[cfg(any(target_os = "android", target_os = "ios"))]
         {
             crate::diagnostics::heartbeat("suspended", || serde_json::json!({}));
             crate::diagnostics::request_flush();

@@ -140,3 +140,44 @@ Every `target_os = "android"` site in Starling's module tree, and what iOS does 
 
 | File | Site | Class | Note |
 |---|---|---|---|
+| `game/starling/{mobile_controls,mod_catalog,update_offer}` | module (`game-module-cfg`) | widen | The control system, the catalog and the update prompt |
+| `game/starling/{native_builds,files_offer,build_mining}.rs`, `setup/onboarding.rs` | module | Android only | Android's build service, shared-storage folder offer, launcher-or-game choice; iOS has `native_builds_ios.rs` |
+| `game/runtime/no_resources.rs`, `loading_screen.rs` `missing_resources` | module, fn | Android only (`not(any(...))`) | The phones' setup asks for the game files instead of the desktop's window |
+| `game/runtime/loading_screen.rs` | `Step::Failed`, `loading_frame_due`, suspend and frame heartbeats | widen | A first start without files shows the setup; 60 Hz loading frames; diagnostics |
+| `game/runtime/loading_screen.rs` | `event_loop`, `onboarding_input`, `finish_saved_onboarding`, `retry`'s onboarding, `first_frame_shown`, GL build | Android only | NativeActivity, ha_launcher's first-run choice, StarlingActivity's window, OpenGL ES |
+| `game/runtime/loading_window.rs` | `renderer_init` checkpoints | widen | Diagnostics |
+| `game/runtime/loading_window.rs` | `start_marker` | Android only | A driver crash at start moves Android to OpenGL ES; iOS has Metal only |
+| `game/runtime/resource_loader.rs` | `Setup::for_launch` | Android only | ha_launcher's onboarding; iOS keeps `Setup::default` |
+| `game/runtime/window_handler.rs` | `sync_interface_cursor`, suspend heartbeat | widen | The menus' safe area; diagnostics |
+| `game/runtime/window_handler.rs` | `android_input_frame`, the files offer's poll | Android only (iOS polls its own three) | Android's input hook; iOS: `ios_input` in `window_event` |
+| `game/runtime/window_handler.rs` | `key_without_modifiers` | widen | UIKit's winit has no modifier supplement |
+| `game/interface/hud_room.rs`, `chat.rs` `interface_origin`, `screen_build.rs` GUI size | all | widen | Starling's HUD, button and menu safe zones |
+| `game/interface/pad/mod.rs` | `hardware`, touch state, keypad, mobile pad end, sneak, analog | widen; `pad/ios.rs` is iOS's `hardware` | GameController in place of Android's events |
+| `game/interface/options.rs` | `mobile_options_apply`, catalog, Restart, menu frame cap | widen | |
+| `game/interface/options.rs` | wardrobe (preview, capes, save, images), `wardrobe_enabled` | Android only | Built on ha_launcher's skin library and cloud; iOS keeps Skin Customization's own page, and its Import Skin... button (`options_ui.rs`, `PHONE`) |
+| `game/interface/options.rs` | `open_game_folder` | Android only | iOS opens Files through `packs::open_folder` |
+| `game/interface/{screens,startup_menu,world_session}.rs`, `mobile_controls` hub | Launcher (`back_to_launcher`) | Android only | No ha_launcher on iOS |
+| `game/interface/startup_menu.rs` | touch settings' save, Restart, narrator onboarding | widen | iOS has no narrator either |
+| `game/interface/startup_menu.rs` | modifiers from held keys | Android only | iOS's winit sends `ModifiersChanged` |
+| `game/interface/{render_settings,pointer_capture}.rs` | `apply_display_settings`, pointer capture | Android only | StarlingActivity's display options and pointer capture; iOS grabs through winit |
+| `game/starling/touch/mod.rs` | menu pointer, catalog Back, keyboard, wardrobe preview hit, vibration, `draw_touch` | widen | Starling's drag-scrolls and slider fixes |
+| `game/starling/touch/mod.rs` | files offer and native builds' touch, `android_keyboard` | Android only | iOS: update prompt and catalog; the window's keyboard |
+| `game/starling/touch/slots.rs` | `player_spin` under the virtual mouse | widen | |
+| `game/starling/{setup/account_form.rs,touch/text_mirror.rs}` | text mirror | Android only | iOS types through the window's keyboard (`Form::type_text`) |
+| `game/starling/setup/mod.rs` | folder offer, startup screen, Horizon Android offer's texts, recovery | Android only | iOS has its own Horizon arms (Files picker) |
+| `game/starling/diagnostics.rs` | share after export | widen | `ios::share_diagnostic` (Files' sheet) |
+| `game/starling/{own_skin.rs,imports.rs}`, `network/remote` cape | wardrobe | Android only | As above |
+| `game/starling/{input_mode.rs,perf_lab.rs}` | Android's mouse events; `STARLING_PERF_TEST` | Android only | |
+| `game/modding/mods/mod.rs` | copied mods, toggles, native game buttons, `list_new_native_mods`, `offer_compile`, missing tables | widen | |
+| `game/modding/mods/mod.rs` | `list_native_builds_row` | Android only | Android's card; iOS's is the Mods page's top |
+| `game.rs` | old phone resolution lift | widen | |
+| `game.rs` | `files_offer`, `native_builds` (Android's), frame hints, `first_frame_shown` | Android only | iOS: `native_builds_ios` |
+| `ui_theme.rs` | boot screen's name | iOS | "Horizon PE" |
+| `horizon-client-render`: `graphics_ui.rs` Display page | all | widen (safe zones only) | iOS has no cutout, orientation or aspect options of an activity |
+| `horizon-client-render`: `options_file.rs` display keys, `controller_ui.rs`, `shader_ui.rs`, `settings_shell.rs`, `options_ui/draw.rs` | all | widen | Safe zones saved; a phone's controller page; the catalog and Auto profile on Shader Packs |
+| `horizon-client-render`: `gfx.rs` present mode, indirect draws, Vulkan cache, Mali; `late_sky`, `adreno`, `panorama` GL, `gpu_drivers`, `graphics.rs` driver crash | all | Android only | Android GPUs' own paths; Metal has none of them |
+| `horizon-client-render`: `gfx/{arena,pack_shadow}.rs`, `horizon-hdr`, `ray_query.rs`, `surface_setup.rs` | all | iOS | 32 MiB pages, 4096 shadows; Vulkan calls off every Apple target |
+| `horizon-client-input/src/keybinds.rs` | scan codes, layout learning | widen | UIKit's winit has neither |
+| `horizon-client/src/entry.rs` | holder, arguments, fatal error | widen | No second process on a phone |
+| `horizon-mod-package` | `NOT_BUILT`, `NativeGameAct`, data dir, `Cleanup::data` | iOS | |
+| `horizon-threads`, `horizon-guest-stack`, `horizon-prepare`, `horizon-mod-wasm` | priorities, stacks, locks, CPU time | Android only, or Apple's already | `target_vendor = "apple"` covers iOS; the server thread's stack is the guest one (136 MiB, virtual) |

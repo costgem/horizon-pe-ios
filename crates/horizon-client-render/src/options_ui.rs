@@ -4586,8 +4586,9 @@ impl OptionsUi {
                         Act::ElyBySkins,
                     )
                 };
-                // A phone's own file picker: the file chosen comes through the import inbox.
-                if self.wardrobe_enabled {
+                // A phone's own file picker: the file chosen comes through the import inbox
+                // (Android's wardrobe library, iOS's Files sheet).
+                if self.wardrobe_enabled || crate::PHONE {
                     rows.push(Row::Buttons(
                         button(
                             0.0,

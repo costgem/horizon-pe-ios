@@ -11621,7 +11621,7 @@ pub(crate) fn run_with(
     // A phone that started before every tier began at the window's own size (graphics.rs
     // `apply_mobile_defaults`): the 70% or 85% its first start saved goes to 100, once. The marker
     // in the app's own files is written on a first start too, so a scale picked later stays.
-    #[cfg(target_os = "android")]
+    #[cfg(any(target_os = "android", target_os = "ios"))]
     if let Some(private) = std::env::var_os("HORIZON_PRIVATE") {
         let marker = std::path::Path::new(&private).join("resolution-scale-lifted");
         if !marker.exists() {

@@ -1455,6 +1455,7 @@
   "starling.account.files": "Game files",
   "starling.account.stop_files": "Stop download",
   "starling.account.error.name_error": "Use 1–16 letters, numbers or underscores.",
+  "starling.account.error.offline_needs_microsoft": "Offline names need a Microsoft account with the game: sign in with it first.",
   "starling.account.error.cancelled": "Profile selection changed.",
   "starling.account.error.missing": "Profile not found.",
   "starling.account.error.signin_again": "Sign in to this profile again.",

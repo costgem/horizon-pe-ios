@@ -417,6 +417,11 @@ pub fn select(key: String) {
         finish(generation, result);
     });
 }
+/// Whether an offline name may be added or played now: on iOS only beside a Microsoft account
+/// (`starling_account::OFFLINE_NEEDS_MICROSOFT`).
+pub fn offline_allowed() -> bool {
+    starling_account::offline_allowed(&profiles())
+}
 pub fn add_offline(name: String) {
     let (generation, cancel) = begin(State::Resuming);
     std::thread::spawn(move || {
