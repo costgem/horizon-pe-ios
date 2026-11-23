@@ -40,8 +40,11 @@ elif grep -q 'panicked at' "$logs/stderr.log" 2>/dev/null; then
   echo '::error::the app panicked in the Simulator (stderr.log above)'
   failed=1
 fi
-if ! grep -q 'Horizon renderer: creating the pipelines' "$logs/latest.log" 2>/dev/null; then
-  echo "::error::the game did not reach its renderer's pipelines (latest.log above)"
+# Starling 0.9.0's loading screen and setup draw on the boot renderer, which keeps its device:
+# the whole renderer ("creating the pipelines") comes with a world. A first start without the
+# game files reaches the setup's title artwork on it.
+if ! grep -qE 'Horizon renderer: creating the pipelines|Horizon: loading the title artwork' "$logs/latest.log" 2>/dev/null; then
+  echo "::error::the game did not reach its renderer or the setup's artwork (latest.log above)"
   failed=1
 fi
 if ! grep -qE 'Horizon: iOS, game folder' "$logs/latest.log" 2>/dev/null; then
@@ -65,7 +68,10 @@ if [ -n "$crashes" ]; then
     failed=1
   fi
 fi
-if xcrun simctl spawn "$device" launchctl list | grep -q "UIKitApplication:$bundle"; then
+# Read whole first: `grep -q` stops reading, and under pipefail the writer's broken pipe made a
+# running app look ended.
+services=$(xcrun simctl spawn "$device" launchctl list 2>/dev/null || true)
+if grep -q "UIKitApplication:$bundle" <<<"$services"; then
   echo 'The app is still running.'
 else
   echo '::warning::the app is no longer running'
