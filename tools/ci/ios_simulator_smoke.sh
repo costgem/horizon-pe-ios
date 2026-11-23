@@ -48,7 +48,15 @@ if ! grep -qE 'Horizon: iOS, game folder' "$logs/latest.log" 2>/dev/null; then
   echo "::error::Starling's start did not reach its log (latest.log above)"
   failed=1
 fi
-crashes=$(find "$HOME/Library/Logs/DiagnosticReports" -newermt "@$started" -name 'Starling*' 2>/dev/null || true)
+# The app's executable is HorizonPE (packaging/ios/project.yml); builds before the rename were
+# Starling. A report is the only trace of a native crash or a watchdog's kill (0x8badf00d).
+crashes=$(find "$HOME/Library/Logs/DiagnosticReports" -newermt "@$started" \( -name 'HorizonPE*' -o -name 'Starling*' \) 2>/dev/null || true)
+# Why the system ended the app, when it did (a watchdog, memory, a signal): its own log's last minutes.
+echo "::group::system log"
+xcrun simctl spawn "$device" log show --style compact --last 4m \
+  --predicate 'process == "HorizonPE" OR (eventMessage CONTAINS[c] "HorizonPE" AND (eventMessage CONTAINS[c] "termin" OR eventMessage CONTAINS[c] "watchdog" OR eventMessage CONTAINS[c] "crash" OR eventMessage CONTAINS[c] "jetsam" OR eventMessage CONTAINS[c] "exit"))' \
+  2>/dev/null | grep -v '^Filtering' | tail -150 || true
+echo "::endgroup::"
 if [ -n "$crashes" ]; then
   for report in $crashes; do echo "::group::$report"; head -120 "$report"; echo "::endgroup::"; done
   # The Simulator-only stop above ends the app too.
