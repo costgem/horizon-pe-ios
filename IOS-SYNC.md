@@ -131,6 +131,7 @@ Every change to a file Starling has, in the order they were made.
 | `horizon-client/src/game/interface/hud_room.rs`, `horizon-client-render/src/graphics_ui.rs` | The HUD, button and menu safe zones on iOS too; Video Settings' Display page on iOS has only those three groups | Starling 0.9.0's safe zones keep the HUD and buttons off the sensor housing and rounded corners |
 | `horizon-mod-package/src/{mod_list.rs,selection/context.rs}` | iOS's `NOT_BUILT`, its tip and its native game buttons; `data_dir_with` reads iOS as macOS | `mod_list` moved out of horizon-client-render in 0.9.0 |
 | `horizon-client-render/src/gfx/{arena.rs,pack_shadow.rs}`, `horizon-hdr`, `gfx/{surface_setup.rs,ray_query.rs}` | iOS pages cap at 32 MiB (`page_ceiling`), shadow maps at 4096 (`shadow_side_limit`); the Vulkan-only calls are `not(target_vendor = "apple")` | 0.9.0 has its own Android caps; iOS joins them. iOS has no Vulkan |
+| `horizon-client/src/game/runtime/{loading_screen.rs,loading_window.rs}`, `interface/startup_menu.rs` | A load that fails before the game files exist shows the setup on iOS too (`horizon_client::PHONE`); the loading frame's 60 Hz pacing, the start's diagnostics checkpoints, the touch settings' save and Restart are the phones'; no narrator onboarding on iOS | 0.9.0 moved these out of `game.rs`, where they were the phones' already: on iOS the first start closed the app instead of asking to sign in |
 
 ## Gate ledger
 

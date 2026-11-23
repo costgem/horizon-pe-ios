@@ -8,7 +8,7 @@ use super::*;
 /// until the game's own frame limit took over, heating the phone while it prepared. Adapted from
 /// Vasysik/horizon-android (its commit f5cf0231bc), MIT, copyright (c) 2026 Ludovic Marie and
 /// the Horizon contributors.
-#[cfg(target_os = "android")]
+#[cfg(any(target_os = "android", target_os = "ios"))]
 fn loading_frame_due(last: Option<Instant>) -> Option<Instant> {
     let next = last? + Duration::from_nanos(1_000_000_000 / 60);
     (Instant::now() < next).then_some(next)
@@ -16,7 +16,7 @@ fn loading_frame_due(last: Option<Instant>) -> Option<Instant> {
 
 /// When the next frame of the title menu drawn while the resources load is due: at once here
 /// (see the Android one).
-#[cfg(not(target_os = "android"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 fn loading_frame_due(_last: Option<Instant>) -> Option<Instant> {
     None
 }
@@ -323,7 +323,7 @@ impl Loading {
     /// The window is going away (Android): its surface goes with it, and the log is flushed
     /// before the system may end the process.
     fn suspended(&mut self) {
-        #[cfg(target_os = "android")]
+        #[cfg(any(target_os = "android", target_os = "ios"))]
         {
             crate::diagnostics::heartbeat("suspended", || serde_json::json!({}));
             crate::diagnostics::request_flush();
@@ -663,7 +663,7 @@ impl Loading {
         } else {
             Vec::new()
         };
-        #[cfg(target_os = "android")]
+        #[cfg(any(target_os = "android", target_os = "ios"))]
         crate::diagnostics::heartbeat(
             if self.failure.is_some() {
                 "setup_failure"
@@ -1206,7 +1206,8 @@ impl ApplicationHandler for App {
             Step::Done => event_loop.exit(),
             Step::Failed(e) => {
                 if let App::Loading(loading) = self {
-                    if cfg!(target_os = "android") {
+                    // A phone's setup asks for the game files instead (iOS's too).
+                    if horizon_client::PHONE {
                         log::error!("Horizon: {e}");
                         loading.failure = Some(e.to_string());
                         return;

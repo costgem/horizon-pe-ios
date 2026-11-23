@@ -131,7 +131,7 @@ impl StartupMenu {
             title.skip_multiplayer_warning = settings.file.bool("skipMultiplayerWarning");
             // Gui.addInitialScreens: the accessibility onboarding comes first. Not on Android,
             // which has no narrator, and whose players' options all still ask for it.
-            if !cfg!(target_os = "android") && settings.file.bool("onboardAccessibility") {
+            if !horizon_client::PHONE && settings.file.bool("onboardAccessibility") {
                 title.start_onboarding();
             }
             self.title = Some(title);
@@ -841,7 +841,7 @@ impl Loading {
                     self.save_menu_settings();
                     // Starling: the touch options (vibration, ...) live in horizon-touch.json,
                     // which options.txt's save leaves alone; the game loads them from there.
-                    #[cfg(target_os = "android")]
+                    #[cfg(any(target_os = "android", target_os = "ios"))]
                     if let Err(e) = self.settings.touch.save() {
                         log::warn!("Controls settings: {e}");
                     }
@@ -1000,7 +1000,7 @@ impl Loading {
                     horizon_client::platform::pick_file();
                 }
                 Event::RestartGame => {
-                    #[cfg(target_os = "android")]
+                    #[cfg(any(target_os = "android", target_os = "ios"))]
                     crate::android::restart_app();
                 }
                 Event::Credits => {
