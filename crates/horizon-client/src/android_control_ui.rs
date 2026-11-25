@@ -1266,10 +1266,11 @@ const HUB_LINE_END: f32 = 292.0;
 
 /// The hub's Launcher button, in its header left of the controls' badge (drawn and hit there).
 /// On a hub too narrow for it beside the line under the title, the line goes; on one too narrow
-/// for it beside the title, there is none (the pause menu still has Launcher).
+/// for it beside the title, there is none (the pause menu still has Launcher). None on iOS
+/// (this port): it has no launcher to go back to, and the button would only end the game.
 fn hub_launcher_button(dx: f32, dy: f32, dw: f32) -> Option<[f32; 4]> {
     let r = [dx + dw - 272.0, dy + 10.0, 76.0, 28.0];
-    (r[0] >= dx + HUB_TITLE_END).then_some(r)
+    (!cfg!(target_os = "ios") && r[0] >= dx + HUB_TITLE_END).then_some(r)
 }
 
 fn button(b: &mut HudBatch, a: &HudAtlas, label: &str, x: f32, y: f32, w: f32) {
@@ -1877,8 +1878,14 @@ pub fn draw_goy_hud(
 }
 
 fn hub_metrics(w: f32, h: f32) -> (f32, f32, f32, f32, f32, f32, f32, f32, f32) {
-    let dw = (w - 16.0).clamp(352.0, 610.0);
-    let dh = (h - 12.0).clamp(264.0, 420.0);
+    // iOS (this port): an iPad's screen has room for most of a tab without scrolling.
+    let (max_w, max_h) = if cfg!(target_os = "ios") {
+        (760.0, 560.0)
+    } else {
+        (610.0, 420.0)
+    };
+    let dw = (w - 16.0).clamp(352.0, max_w);
+    let dh = (h - 12.0).clamp(264.0, max_h);
     let dx = (w - dw) * 0.5;
     let dy = (h - dh) * 0.5;
     let side_w = (dw * 0.25).clamp(114.0, 148.0);
@@ -3086,7 +3093,11 @@ impl TouchUi {
             dx + 52.0,
             dy + 8.0,
             text_c,
-            "Starling Control Hub",
+            if cfg!(target_os = "ios") {
+                "Touch Controls"
+            } else {
+                "Starling Control Hub"
+            },
         );
         // The line under the title gives way to the Launcher button on a narrow hub.
         if hub_launcher_button(dx, dy, dw).is_none_or(|r| r[0] >= dx + HUB_LINE_END) {
