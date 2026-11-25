@@ -5,6 +5,7 @@
 //! embedded Horizon font: the game's own is part of what is missing. While it waits, water to fish in (fishing.rs), and the
 //! game's settings, drawn in the low-budget skin the app carries (packaging/lowbudget).
 mod account_form;
+mod failure;
 pub(super) mod fishing;
 #[cfg(target_os = "android")]
 mod onboarding;
@@ -222,7 +223,7 @@ fn step(setup: &Setup, failure: &str) -> Step {
         return Step::Done;
     }
     if setup.prepared && preparer::stage() == Stage::Idle {
-        return Step::Failed(format!("The prepared game files did not load: {failure}"));
+        return Step::Failed(format!("{}{failure}", failure::NOT_LOADED));
     }
     match preparer::stage() {
         Stage::Java(done, total, started) => return Step::Java(done, total, Some(started)),
@@ -567,7 +568,7 @@ fn buttons(step: &Step) -> Vec<(String, Action)> {
         ],
         Step::Talking(_) => vec![(tr("cancel"), Action::CancelSignIn)],
         Step::Failed(_) => vec![
-            literal("Try again", Action::Retry),
+            (tr("setup.try_again"), Action::Retry),
             (tr("setup.import"), Action::Pick),
         ],
         Step::SignInFailed(_) => [
@@ -731,7 +732,13 @@ impl Loading {
             }
         };
         let step = step(&self.setup, failure);
-        let (title, body, note) = texts(&step);
+        let (title, body, note) = match &step {
+            Step::Failed(raw) => failure::texts(raw),
+            step => {
+                let (title, body, note) = texts(step);
+                (title.to_owned(), body, note)
+            }
+        };
         let mut ui = Ui::new(atlas, batch, (-1.0, -1.0));
         let (w, h) = (ui.w, ui.h);
         if let Some(form) = &self.setup.form {
@@ -819,7 +826,7 @@ impl Loading {
         };
         ui.rounded(x, y, card_w, card_h, 14.0, card);
         ui.border(x, y, card_w, card_h, 14.0, color::border());
-        ui.text(Face::Semibold, 18.0, x + pad, y + pad, color::text(), title);
+        ui.text(Face::Semibold, 18.0, x + pad, y + pad, color::text(), &title);
         let mut ty = y + pad + 26.0 + 12.0;
         for line in &lines {
             ui.text(Face::Regular, 14.0, x + pad, ty, color::MUTED, line);
