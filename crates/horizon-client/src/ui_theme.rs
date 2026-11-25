@@ -714,8 +714,8 @@ const BOOT_TEXT: u32 = color::hex(0xFFFFFF, 255);
 const BOOT_LOG: u32 = color::hex(0x9BA1A6, 255);
 
 /// The boot screen while the menu is not ready yet: the wordmark centred on
-/// pure black and the console's last lines at the bottom right, as the
-/// terminal prints them.
+/// pure black and the console's last lines at the bottom left, as the
+/// terminal prints them (not on iOS: [`draw_boot_log`]).
 pub fn draw_boot(atlas: &HudAtlas, batch: &mut HudBatch, logs: &[String]) {
     // Pure black under everything: the frame's panorama (the title artwork
     // once the bundle is in) must not leak through.
@@ -759,9 +759,11 @@ fn wordmark(atlas: &HudAtlas, batch: &mut HudBatch) {
 }
 
 /// The console's last lines at the bottom left, over any loading screen: long
-/// lines wrap word-wise, the block grows upwards.
+/// lines wrap word-wise, the block grows upwards. Not on iOS (this port): a phone's start shows
+/// the wordmark alone, and the lines stay in the log, `logs/latest.log` in the Files app's
+/// folder of the app.
 pub fn draw_boot_log(atlas: &HudAtlas, batch: &mut HudBatch, logs: &[String]) {
-    if logs.is_empty() {
+    if logs.is_empty() || cfg!(target_os = "ios") {
         return;
     }
     let mut ui = Ui::new(atlas, batch, (0.0, 0.0));
